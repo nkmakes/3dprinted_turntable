@@ -1,15 +1,22 @@
 /**
  * ESP 8266 turntable test and example code
- * Works with accelstepper library, big thanks to creators!
- * Also implements a webserver which accepts a move by the argument:
- * 192.168.XXX.XXX/Move?Speed=250&Pos=360&Accel=50&Abs=1&Cons=1
+ * 
+ * Also implements a webserver which accepts two move by the argument:
+ * For constant moves:
+ * 192.168.XXX.XXX/cons?Speed=250&Pos=360(&Abs)
+ * 
+ * For accelerated moves:
+ * 192.168.XXX.XXX/accel?Speed=250&Pos=360&Accel=100(&Abs)
+ * 
  * Speed: Int : Speed of the move
  * Pos: Int: Desired position (In degrees), positive(CW) or negative(CCW)
  * Accel: Int : Max acceleration
- * Abs : Int : 1= Abolute position movement, 0= Relative position movement
- * Cons: Int : 1= Constant speed movement, 0= Accelerated movement 
- * Only working with accelerated moves, not constant speed
- * instagram.com/spicy_coder 01/2020
+ * Abs : boolean : If present, moves to absolut position
+ * 
+ * Works with accelstepper library, big thanks to airspayce!
+ * Check out latest version of documentation in link below
+ * http://www.airspayce.com/mikem/arduino/AccelStepper
+ * 
  */
 
 #include <Arduino.h>
@@ -28,13 +35,75 @@ AccelStepper stepper(AccelStepper::FULL4WIRE, D5, D6, D7, D8);
 // 1 rotation = 14336
 int oneTurn = 14336;
 
+// handles the constant speed moves of the platform
+void constantMove(int pos, int speed, bool abs) {
 
+  stepper.setMaxSpeed(speed);
+  
+  if (abs==true) {
+    stepper.moveTo((pos*oneTurn)/360);
+      if(pos*oneTurn/360<stepper.targetPosition()) {
+        speed=-speed;
+      }
+  } else {
+    stepper.move((pos*oneTurn)/360);
+    if (pos<0) {
+      speed=-speed;
+    }
+  }
+
+  stepper.enableOutputs();
+
+  while (stepper.distanceToGo() != 0) {
+    // run a step and calc when next one
+    stepper.run();
+    stepper.setSpeed(speed);
+    // reset esp8266 watchdog
+    yield();
+    // manage server
+    server.handleClient();
+  }
+
+  // disable motors after move for to cool them down
+  stepper.disableOutputs();
+}
+
+// Handles the accelerated moves of the platform
+void acceleratedMove(int pos, int speed, int accel, bool abs) {
+
+  stepper.setAcceleration(accel);
+  stepper.setMaxSpeed(speed);
+
+  //if absoulte = true, moves to a absolut position
+  if (abs==true) {
+    stepper.moveTo((pos*oneTurn)/360);
+  } else {
+    stepper.move((pos*oneTurn)/360);
+  }
+
+  stepper.enableOutputs();
+
+
+  while (stepper.distanceToGo() != 0) {
+    // run a step and calc when next one
+    stepper.run();
+    // reset esp8266 watchdog
+    yield();
+    // manage server
+    server.handleClient();
+  }
+  stepper.disableOutputs();
+
+}
+
+// handles the HTTP messages for Accelerated moves
 void handleAccel() { // Handler. 192.168.XXX.XXX/accell?Accel=100&Speed=250&Pos=360(&Abs)
   String message = "Accelerated move with: ";
   // Default values
   int msgSpeed = 500;
   int msgPos = 90;
   int msgAccel = 100;
+  int msgAbs = false;
 
   if (server.hasArg("Speed")) {
     msgSpeed = (server.arg("Speed")).toInt(); //Converts the string to integer.
@@ -60,39 +129,28 @@ void handleAccel() { // Handler. 192.168.XXX.XXX/accell?Accel=100&Speed=250&Pos=
   }
 
   if (server.hasArg("Abs")) {
-    stepper.moveTo(msgPos*oneTurn/360);
+    msgAbs = true;
     message += " Absolut: Yes";
   } else {
-    stepper.move(msgPos*oneTurn/360);
     message += " Absolut: No";
   }
   
   server.send(200, "text/plain", message);
   
-  stepper.enableOutputs();
-
-  while (stepper.distanceToGo() != 0) {
-    // run a step and calc when next one
-    stepper.run();
-    // reset esp8266 watchdog
-    yield();
-    // manage server
-    server.handleClient();
-  }
-  stepper.disableOutputs();
+  acceleratedMove(msgPos, msgSpeed, msgAccel, msgAbs);
 }
 
+// handles the HTTP messages for constant speed moves
 void handleConstant() {// Handler. 192.168.XXX.XXX/cons?Speed=250&Pos=360(&Abs)
   
   int msgPos = 90;
   int msgSpeed = 500;
+  bool msgAbs = false;
   String message = "Constant move with: ";
 
   if (server.hasArg("Speed")) {
     msgSpeed = (server.arg("Speed")).toInt(); //Converts the string to integer.
     // set the speed for the move
-    stepper.setMaxSpeed(msgSpeed);
-    stepper.setSpeed(msgSpeed);
     message += " Speed: ";
     message += server.arg("Speed");
   }
@@ -103,33 +161,16 @@ void handleConstant() {// Handler. 192.168.XXX.XXX/cons?Speed=250&Pos=360(&Abs)
     message += server.arg("Pos");
   }
   if (server.hasArg("Abs")) {
-    stepper.moveTo(msgPos*oneTurn/360);
+    msgAbs = true;
     message += " Absolut: Yes";
   } else {
-    stepper.move(msgPos*oneTurn/360);
     message += " Absolut: No";
   }
 
   server.send(200, "text/plain", message);
 
-  // enable the motor before moving
-  stepper.enableOutputs();
-  
-  while (stepper.distanceToGo() != 0) {
-    // run a step and calc when next one
-    stepper.run();
-    stepper.setSpeed(msgSpeed);
-    // reset esp8266 watchdog
-    yield();
-    // manage server
-    server.handleClient();
-  }
-
-  // disable motors after move for to cool them down
-  stepper.disableOutputs();
-  
+  constantMove(msgPos, msgSpeed, msgAbs);
 }
-
 
 void handleRootPath() {
  server.send(200, "text/plain", "Ready.");
@@ -146,6 +187,7 @@ void setup()
   Serial.print("AP IP address: "); //This is written in the PC console.
   Serial.println(myIP);
 
+  //Assigns each handler to each url
   delay(1000);
   server.on("/", handleRootPath); 
   server.on("/accel", handleAccel);
