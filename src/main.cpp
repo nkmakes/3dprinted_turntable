@@ -71,6 +71,7 @@ void constantMove(int pos, int speed, bool abs) {
 // Handles the accelerated moves of the platform
 void acceleratedMove(int pos, int speed, int accel, bool abs) {
 
+  
   stepper.setAcceleration(accel);
   stepper.setMaxSpeed(speed);
 
