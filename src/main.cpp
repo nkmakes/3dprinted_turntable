@@ -35,6 +35,25 @@ AccelStepper stepper(AccelStepper::FULL4WIRE, D5, D6, D7, D8);
 // 1 rotation = 14336
 int oneTurn = 14336;
 
+// https://stackoverflow.com/questions/9072320/split-string-into-string-array
+String getValue(String data, char separator, int index)
+{
+  int found = 0;
+  int strIndex[] = {0, -1};
+  int maxIndex = data.length()-1;
+
+  for(int i=0; i<=maxIndex && found<=index; i++){
+    if(data.charAt(i)==separator || i==maxIndex){
+        found++;
+        strIndex[0] = strIndex[1]+1;
+        strIndex[1] = (i == maxIndex) ? i+1 : i;
+    }
+  }
+
+  return found>index ? data.substring(strIndex[0], strIndex[1]) : "";
+}
+
+
 // handles the constant speed moves of the platform
 void constantMove(int pos, int speed, bool abs) {
 
@@ -95,6 +114,29 @@ void acceleratedMove(int pos, int speed, int accel, bool abs) {
   }
   stepper.disableOutputs();
 
+}
+
+// handles one HTTP message for multiple moves
+// Handler. 192.168.XXX.XXX/multi?cons=pos-speed&accel=pos-speed-accel
+void handleMultiple() {
+  String message = "multiple moves";
+  server.send(200, "text/plain", message);
+  for (int i = 0; i < server.args(); i++) {
+    message += "Arg nº" + (String)i + " –> ";
+    message += server.argName(i) + ": ";
+    message += server.arg(i) + "\n";
+    if (server.argName(i)=="cons") {
+      int pos = (getValue(server.arg(i),'_',0)).toInt();
+      int speed = (getValue(server.arg(i),'_',1)).toInt();
+      constantMove(pos,speed,false);
+    } else {
+      int pos = (getValue(server.arg(i),'_',0)).toInt();
+      int speed = (getValue(server.arg(i),'_',1)).toInt();
+      int accel = (getValue(server.arg(i),'_',2)).toInt();
+      acceleratedMove(pos,speed,accel,false);
+    }
+    server.send(200, "text/plain", message);
+  } 
 }
 
 // handles the HTTP messages for Accelerated moves
@@ -193,6 +235,7 @@ void setup()
   server.on("/", handleRootPath); 
   server.on("/accel", handleAccel);
   server.on("/cons", handleConstant);
+  server.on("/multi", handleMultiple);
 
   server.begin(); //Let's call the begin method on the server object to start the server.
   Serial.println("HTTP server started");
