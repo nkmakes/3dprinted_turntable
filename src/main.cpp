@@ -178,10 +178,11 @@ void handleConstant() { // Handler. 192.168.XXX.XXX/cons?Speed=250&Pos=360(&Abs)
 }
 
 
-//void handleRootPath() {
+void handleRootPath() {
 //  String s = MAIN_page;
 //  server.send(200, "text/html", s);
-//}
+  server.serveStatic("/", SPIFFS, "/index.htm");
+}
 
 void setup()
 {  
@@ -196,8 +197,8 @@ void setup()
 
   //Assigns each handler to each url
   delay(1000);
-  //server.on("/", handleRootPath);
-  server.serveStatic("/", SPIFFS, "/index.html");
+  server.on("/", handleRootPath);
+  
   server.on("/accel", handleAccel);
   server.on("/cons", handleConstant);
   server.on("/multi", handleMultiple);
