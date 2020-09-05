@@ -108,7 +108,8 @@ void handleMultiple() {
       acceleratedMove(pos,speed,accel,false);
     }
     server.send(200, "text/plain", message);
-  } 
+  }
+  Serial.print(message);
 }
 
 // handles the HTTP messages for Accelerated moves
