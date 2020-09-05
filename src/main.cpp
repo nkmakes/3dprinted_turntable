@@ -35,7 +35,9 @@ AccelStepper stepper(AccelStepper::FULL4WIRE, D5, D6, D7, D8);
 // 1 rotation = 14336
 int oneTurn = 14336;
 
+
 // https://stackoverflow.com/questions/9072320/split-string-into-string-array
+
 String getValue(String data, char separator, int index)
 {
   int found = 0;
@@ -89,7 +91,6 @@ void constantMove(int pos, int speed, bool abs) {
 
 // Handles the accelerated moves of the platform
 void acceleratedMove(int pos, int speed, int accel, bool abs) {
-
   
   stepper.setAcceleration(accel);
   stepper.setMaxSpeed(speed);
@@ -102,7 +103,6 @@ void acceleratedMove(int pos, int speed, int accel, bool abs) {
   }
 
   stepper.enableOutputs();
-
 
   while (stepper.distanceToGo() != 0) {
     // run a step and calc when next one
@@ -141,79 +141,39 @@ void handleMultiple() {
 
 // handles the HTTP messages for Accelerated moves
 void handleAccel() { // Handler. 192.168.XXX.XXX/accell?Accel=100&Speed=250&Pos=360(&Abs)
-  String message = "Accelerated move with: ";
   // Default values
   int msgSpeed = 500;
   int msgPos = 90;
   int msgAccel = 100;
   int msgAbs = false;
 
-  if (server.hasArg("Speed")) {
-    msgSpeed = (server.arg("Speed")).toInt(); //Converts the string to integer.
-    // set the speed for the move
-    stepper.setMaxSpeed(msgSpeed);
-    message += " Speed: ";
-    message += server.arg("Speed");
-  }
+  if (server.hasArg("Speed")) stepper.setMaxSpeed((server.arg("Speed")).toInt());
 
-  if (server.hasArg("Pos")) {
-    // sets the position
-    msgPos = (server.arg("Pos")).toInt();
-    message += " Pos: ";
-    message += server.arg("Pos");
-  }
-
-  if (server.hasArg("Accell")) {
-    // sets the acceleration
-    msgAccel = (server.arg("Accel")).toInt();
-    stepper.setAcceleration(msgAccel);
-    message += " Accel: ";
-    message += server.arg("Accel");
-  }
-
-  if (server.hasArg("Abs")) {
-    msgAbs = true;
-    message += " Absolut: Yes";
-  } else {
-    message += " Absolut: No";
-  }
+  if (server.hasArg("Pos")) msgPos = (server.arg("Pos")).toInt();
   
-  server.send(200, "text/plain", message);
+  if (server.hasArg("Accell")) stepper.setAcceleration((server.arg("Accel")).toInt());
+
+  if (server.hasArg("Abs")) msgAbs = true;
   
   acceleratedMove(msgPos, msgSpeed, msgAccel, msgAbs);
 }
 
 // handles the HTTP messages for constant speed moves
-void handleConstant() {// Handler. 192.168.XXX.XXX/cons?Speed=250&Pos=360(&Abs)
+void handleConstant() { // Handler. 192.168.XXX.XXX/cons?Speed=250&Pos=360(&Abs)
   
   int msgPos = 90;
   int msgSpeed = 500;
   bool msgAbs = false;
-  String message = "Constant move with: ";
 
-  if (server.hasArg("Speed")) {
-    msgSpeed = (server.arg("Speed")).toInt(); //Converts the string to integer.
-    // set the speed for the move
-    message += " Speed: ";
-    message += server.arg("Speed");
-  }
-  if (server.hasArg("Pos")) {
-    // sets the position
-    msgPos = (server.arg("Pos")).toInt();
-    message += " Pos: ";
-    message += server.arg("Pos");
-  }
-  if (server.hasArg("Abs")) {
-    msgAbs = true;
-    message += " Absolut: Yes";
-  } else {
-    message += " Absolut: No";
-  }
+  if (server.hasArg("Speed")) stepper.setMaxSpeed((server.arg("Speed")).toInt());
 
-  server.send(200, "text/plain", message);
+  if (server.hasArg("Pos")) msgPos = (server.arg("Pos")).toInt();
+  
+  if (server.hasArg("Abs")) msgAbs = true;
 
   constantMove(msgPos, msgSpeed, msgAbs);
 }
+
 
 void handleRootPath() {
  server.send(200, "text/plain", "Ready.");
@@ -249,7 +209,7 @@ void setup()
 void loop()
 {
     // If we dont need to move we disable outputs (no heat)
-    if (stepper.distanceToGo() == 0) {
+      if (stepper.distanceToGo() == 0) {
       stepper.disableOutputs();
     } else {
       stepper.enableOutputs();
