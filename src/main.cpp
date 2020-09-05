@@ -181,7 +181,19 @@ void handleConstant() { // Handler. 192.168.XXX.XXX/cons?Speed=250&Pos=360(&Abs)
 void handleRootPath() {
 //  String s = MAIN_page;
 //  server.send(200, "text/html", s);
-  server.serveStatic("/", SPIFFS, "/index.htm");
+String myFile = "/index.htm";
+
+if (SPIFFS.exists(myFile)) {
+  Serial.println(F("myFile founded on   SPIFFS"));   //ok
+
+  File file = SPIFFS.open(myFile, "r");                    //ok      
+
+  size_t sent = server.streamFile(file, "text/html");
+  file.close();    
+  
+  //server.send(200, "text/html", file);
+  //server.send("/", SPIFFS, "/index.htm");
+  }
 }
 
 void setup()
