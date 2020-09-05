@@ -2,6 +2,9 @@
 
 Code for wifi 3d printed turntable,
 
+codepen to edit available on:
+https://codepen.io/niko93rodriguez/pen/jOqLgmL
+
 Stl file available on
 https://www.thingiverse.com/thing:4142700
 
