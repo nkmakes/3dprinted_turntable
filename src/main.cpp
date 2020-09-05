@@ -1,23 +1,3 @@
-/**
- * ESP 8266 turntable test and example code
- * 
- * Also implements a webserver which accepts two move by the argument:
- * For constant moves:
- * 192.168.XXX.XXX/cons?Speed=250&Pos=360(&Abs)
- * 
- * For accelerated moves:
- * 192.168.XXX.XXX/accel?Speed=250&Pos=360&Accel=100(&Abs)
- * 
- * Speed: Int : Speed of the move
- * Pos: Int: Desired position (In degrees), positive(CW) or negative(CCW)
- * Accel: Int : Max acceleration
- * Abs : boolean : If present, moves to absolut position
- * 
- * Works with accelstepper library, big thanks to airspayce!
- * Check out latest version of documentation in link below
- * http://www.airspayce.com/mikem/arduino/AccelStepper
- * 
- */
 
 #include <Arduino.h>
 #include <AccelStepper.h>
@@ -25,16 +5,8 @@
 #include "ESP8266WiFi.h"        //I can connect to a Wifi
 #include "ESP8266WebServer.h"   //I can be a server 'cos I have the class ESP8266WebServer available
 #include "WiFiClient.h"
-const char *ssid = "ESPap";  //Credentials to register network defined by the SSID (Service Set IDentifier)
-const char *password = "PASSWORD"; //and the second one a password if you wish to use it.
-ESP8266WebServer server(80);    //Class ESP8266WebServer and default port for HTTP
-
-// Define a stepper and the pins it will use
-AccelStepper stepper(AccelStepper::FULL4WIRE, D5, D6, D7, D8);
-
-// 1 rotation = 14336
-int oneTurn = 14336;
-
+#include "config.h"
+#include "web.h"
 
 // https://stackoverflow.com/questions/9072320/split-string-into-string-array
 
@@ -176,7 +148,8 @@ void handleConstant() { // Handler. 192.168.XXX.XXX/cons?Speed=250&Pos=360(&Abs)
 
 
 void handleRootPath() {
- server.send(200, "text/plain", "Ready.");
+  String s = MAIN_page;
+  server.send(200, "text/html", s);
 }
 
 void setup()
