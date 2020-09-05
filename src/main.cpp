@@ -5,9 +5,39 @@
 #include "ESP8266WiFi.h"        //I can connect to a Wifi
 #include "ESP8266WebServer.h"   //I can be a server 'cos I have the class ESP8266WebServer available
 #include "WiFiClient.h"
+#include <FS.h>
 #include "config.h"
-#include "web.h"
+/**
+ * ESP 8266 turntable test and example code
+ * 
+ * Also implements a webserver which accepts two move by the argument:
+ * For constant moves:
+ * 192.168.XXX.XXX/cons?Speed=250&Pos=360(&Abs)
+ * 
+ * For accelerated moves:
+ * 192.168.XXX.XXX/accel?Speed=250&Pos=360&Accel=100(&Abs)
+ * 
+ * Speed: Int : Speed of the move
+ * Pos: Int: Desired position (In degrees), positive(CW) or negative(CCW)
+ * Accel: Int : Max acceleration
+ * Abs : boolean : If present, moves to absolut position
+ * 
+ * Works with accelstepper library, big thanks to airspayce!
+ * Check out latest version of documentation in link below
+ * http://www.airspayce.com/mikem/arduino/AccelStepper
+ * 
+ */
 
+
+const char *ssid = "ESPap";  //Credentials to register network defined by the SSID (Service Set IDentifier)
+const char *password = "PASSWORD"; //and the second one a password if you wish to use it.
+ESP8266WebServer server(80);    //Class ESP8266WebServer and default port for HTTP
+
+// Define a stepper and the pins it will use
+AccelStepper stepper(AccelStepper::FULL4WIRE, D5, D6, D7, D8);
+
+// 1 rotation = 14336
+int oneTurn = 14336;
 // https://stackoverflow.com/questions/9072320/split-string-into-string-array
 
 String getValue(String data, char separator, int index)
@@ -148,10 +178,10 @@ void handleConstant() { // Handler. 192.168.XXX.XXX/cons?Speed=250&Pos=360(&Abs)
 }
 
 
-void handleRootPath() {
-  String s = MAIN_page;
-  server.send(200, "text/html", s);
-}
+//void handleRootPath() {
+//  String s = MAIN_page;
+//  server.send(200, "text/html", s);
+//}
 
 void setup()
 {  
@@ -166,11 +196,16 @@ void setup()
 
   //Assigns each handler to each url
   delay(1000);
-  server.on("/", handleRootPath); 
+  //server.on("/", handleRootPath);
+  server.serveStatic("/", SPIFFS, "/index.html");
   server.on("/accel", handleAccel);
   server.on("/cons", handleConstant);
   server.on("/multi", handleMultiple);
 
+  if(!SPIFFS.begin()){
+    Serial.println("An Error has occurred while mounting SPIFFS");
+    return;
+  }
   server.begin(); //Let's call the begin method on the server object to start the server.
   Serial.println("HTTP server started");
 
