@@ -10,6 +10,10 @@
 #include <FS.h>
 
 #include "config.h"
+volatile int movementType = 0;
+volatile int pos, speed, accel;
+String moveList;
+
 /**
  * ESP 8266 turntable test and example code
  * 
@@ -34,6 +38,9 @@
  * https://github.com/me-no-dev/ESPAsyncWebServer#principles-of-operation
  */
 
+
+
+
 String getValue(String data, char separator, int index)
 {
   int found = 0;
@@ -54,76 +61,66 @@ String getValue(String data, char separator, int index)
 }
 
 // handles the constant speed moves of the platform
-void constantMove(int pos, int speed, bool abs)
+void constantMove()
 {
-
   stepper.setMaxSpeed(speed);
 
-  if (abs == true)
-  {
-    stepper.moveTo((pos * oneTurn) / 360);
-    if (pos * oneTurn / 360 < stepper.targetPosition())
-    {
-      speed = -speed;
-    }
-  }
-  else
-  {
     stepper.move((pos * oneTurn) / 360);
     if (pos < 0)
     {
       speed = -speed;
     }
-  }
-
-  stepper.enableOutputs();
-
-  while (stepper.distanceToGo() != 0)
-  {
-    // run a step and calc when next one
-    stepper.run();
-    stepper.setSpeed(speed);
-    // reset esp8266 watchdog
-    yield();
-  }
-
-  // disable motors after move for to cool them down
-  stepper.disableOutputs();
+ 
 }
 
 // Handles the accelerated moves of the platform
-void acceleratedMove(int pos, int speed, int accel, bool abs)
+void acceleratedMove()
 {
-
   stepper.setAcceleration(accel);
   stepper.setMaxSpeed(speed);
-
   //if absoulte = true, moves to a absolut position
-  if (abs == true)
-  {
-    stepper.moveTo((pos * oneTurn) / 360);
-  }
-  else
-  {
-    stepper.move((pos * oneTurn) / 360);
-  }
 
-  stepper.enableOutputs();
+  stepper.move((pos * oneTurn) / 360);
 
-  while (stepper.distanceToGo() != 0)
-  {
-    // run a step and calc when next one
-    stepper.run();
-    // reset esp8266 watchdog
-    yield();
-  }
-  stepper.disableOutputs();
 }
 
+boolean getNextMove() {
+  if ((moveList == "") | (moveList == ":")) return false;
+
+  int endCommandIndex = moveList.indexOf(':');
+  String fullMove=moveList.substring(0, endCommandIndex);
+  String mType=getValue(fullMove, '|', 0);
+  String specs=getValue(fullMove, '|', 1);
+
+  //Serial.println(fullMove);
+  pos = getValue(specs,';',0).toInt();
+  speed = getValue(specs,';',1).toInt();  
+  if (mType=="0") {
+    movementType = 0;
+  }
+  if (mType=="1") {
+    accel = getValue(specs,';',2).toInt();
+    movementType = 1;
+  }
+  Serial.print(moveList + "-----  ");
+  moveList = moveList.substring(endCommandIndex+1);
+  Serial.print(moveList);
+
+  if (moveList == ":") 
+  {
+    moveList="";
+  } else {
+    
+  }
+  
+  //Serial.println(moveList);
+  return true;
+}
 
 
 void setup()
 {
+  moveList = "";
   Serial.begin(9600); //I can debbug through the serial port
 
   // Configure NODEMCU as Access Point
@@ -138,6 +135,8 @@ void setup()
     Serial.println("An Error has occurred while mounting SPIFFS");
     return;
   }
+
+  //ESP.wdtDisable();
 
   //Assigns each handler to each url
   delay(1000);
@@ -168,18 +167,22 @@ void setup()
       String moveReq = request->argName(i).c_str() ;
       String moveArg = request->arg(i).c_str();
 
-      int pos = (getValue(moveArg, ';', 0)).toInt();
-      int speed = (getValue(moveArg, ';', 1)).toInt();
+      //pos = (getValue(moveArg, ';', 0)).toInt();
+      //speed = (getValue(moveArg, ';', 1)).toInt();
 
       if (moveReq == "cons")
       {
+        moveArg = "0|" + moveArg;
         //constantMove(pos, speed, false);
       }
       else if (moveReq == "accel")
       {
-        int accel = (getValue(moveArg, ';', 2)).toInt();
+        //accel = (getValue(moveArg, ';', 2)).toInt();
         //acceleratedMove(pos, speed, accel, false);
+        moveArg = "1|" + moveArg;
       }
+      moveList = moveList + moveArg + ":";
+      
     }
 
     
@@ -195,22 +198,29 @@ void setup()
 
 void loop()
 {
-  // If we dont need to move we disable outputs (no heat)
-  /**
-  while (client.available())
-  {
-    client.poll();
-
-    if (stepper.distanceToGo() == 0)
-    {
-      stepper.disableOutputs();
+  if (getNextMove()!=false) {
+    stepper.enableOutputs();
+    if (movementType==0) {
+      constantMove();
+      
+    } else if (movementType==1) {
+      acceleratedMove();
     }
-    else
+  
+    while (stepper.distanceToGo() != 0)
     {
-      stepper.enableOutputs();
+      // run a step and calc when next one
+      if (movementType==0) {
+            stepper.run();
+            stepper.setSpeed(speed);
+      } else if (movementType==1) {
+          stepper.run();
+      }
+      // reset esp8266 watchdog
+      yield();
     }
-    //handle client
-    yield();
-
-  }**/
+    //movementType=0;
+  } else {
+    stepper.disableOutputs();
+  }
 }
