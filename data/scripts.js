@@ -93,7 +93,7 @@ document.getElementById("baseform").onsubmit = function (event) {
     document.getElementById("debug").innerHTML = " ";
     var form = document.getElementsByClassName("moveCard");
     var i = 0;
-    let Url = "multi?";
+    let Url = "http://192.168.4.1/multi?";
     for (i = 0; i < form.length; i++) {
         var inputs = form[i].childNodes;
         //document.getElementById("debug").innerHTML = document.getElementById("debug").innerHTML + form[i];
@@ -107,13 +107,14 @@ document.getElementById("baseform").onsubmit = function (event) {
 
         document.getElementById("debug").innerHTML = document.getElementById("debug").innerHTML + "<br>" + distanceInput + "," + speedInput + "," + mtypeInput + "," + accelerationInput;
         if (mtypeInput == true) {
-            Url = Url + "accel=" + distanceInput + "-" + speedInput + "-" + accelerationInput + "&";
+            Url = Url + "accel=" + distanceInput + ";" + speedInput + ";" + accelerationInput + "&";
         } else {
-            Url = Url + "cons=" + distanceInput + "-" + speedInput + "&";
+            Url = Url + "cons=" + distanceInput + ";" + speedInput + "&";
         }
     };
     Url = Url.substring(0, Url.length - 1);
     document.getElementById("debug").innerHTML = Url;
     var xhttp = new XMLHttpRequest();
-    xhttp.open("GET", Url)
+    xhttp.open("GET", Url, true);
+    xhttp.send(null);
 }

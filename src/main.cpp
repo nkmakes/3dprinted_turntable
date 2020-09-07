@@ -1,11 +1,14 @@
 
+
 #include <Arduino.h>
 #include <AccelStepper.h>
 /// Wifi
-#include "ESP8266WiFi.h"      //I can connect to a Wifi
-#include "ESP8266WebServer.h" //I can be a server 'cos I have the class ESP8266WebServer available
+#include "ESP8266WiFi.h" //I can connect to a Wifi
 #include "WiFiClient.h"
+#include "ESPAsyncTCP.h"
+#include "ESPAsyncWebServer.h"
 #include <FS.h>
+
 #include "config.h"
 /**
  * ESP 8266 turntable test and example code
@@ -26,9 +29,10 @@
  * Check out latest version of documentation in link below
  * http://www.airspayce.com/mikem/arduino/AccelStepper
  * 
+ * 
+ * ESPASyncWebServer
+ * https://github.com/me-no-dev/ESPAsyncWebServer#principles-of-operation
  */
-
-
 
 String getValue(String data, char separator, int index)
 {
@@ -81,8 +85,6 @@ void constantMove(int pos, int speed, bool abs)
     stepper.setSpeed(speed);
     // reset esp8266 watchdog
     yield();
-    // manage server
-    server.handleClient();
   }
 
   // disable motors after move for to cool them down
@@ -114,141 +116,11 @@ void acceleratedMove(int pos, int speed, int accel, bool abs)
     stepper.run();
     // reset esp8266 watchdog
     yield();
-    // manage server
-    server.handleClient();
   }
   stepper.disableOutputs();
 }
 
-// handles one HTTP message for multiple moves
-// Handler. 192.168.XXX.XXX/multi?cons=pos-speed&accel=pos-speed-accel
-void handleMultiple()
-{
-  String message = "multiple moves";
-  server.send(200, "text/plain", message);
-  for (int i = 0; i < server.args(); i++)
-  {
-    message += "Arg nº" + (String)i + " –> ";
-    message += server.argName(i) + ": ";
-    message += server.arg(i) + "\n";
-    if (server.argName(i) == "cons")
-    {
-      int pos = (getValue(server.arg(i), '_', 0)).toInt();
-      int speed = (getValue(server.arg(i), '_', 1)).toInt();
-      constantMove(pos, speed, false);
-    }
-    else
-    {
-      int pos = (getValue(server.arg(i), '_', 0)).toInt();
-      int speed = (getValue(server.arg(i), '_', 1)).toInt();
-      int accel = (getValue(server.arg(i), '_', 2)).toInt();
-      acceleratedMove(pos, speed, accel, false);
-    }
-    server.send(200, "text/plain", message);
-  }
-  Serial.print(message);
-}
 
-// handles the HTTP messages for Accelerated moves
-void handleAccel()
-{ // Handler. 192.168.XXX.XXX/accell?Accel=100&Speed=250&Pos=360(&Abs)
-  // Default values
-  int msgSpeed = 500;
-  int msgPos = 90;
-  int msgAccel = 100;
-  int msgAbs = false;
-
-  if (server.hasArg("Speed"))
-    stepper.setMaxSpeed((server.arg("Speed")).toInt());
-
-  if (server.hasArg("Pos"))
-    msgPos = (server.arg("Pos")).toInt();
-
-  if (server.hasArg("Accell"))
-    stepper.setAcceleration((server.arg("Accel")).toInt());
-
-  if (server.hasArg("Abs"))
-    msgAbs = true;
-
-  acceleratedMove(msgPos, msgSpeed, msgAccel, msgAbs);
-}
-
-// handles the HTTP messages for constant speed moves
-void handleConstant()
-{ // Handler. 192.168.XXX.XXX/cons?Speed=250&Pos=360(&Abs)
-
-  int msgPos = 90;
-  int msgSpeed = 500;
-  bool msgAbs = false;
-
-  if (server.hasArg("Speed"))
-    stepper.setMaxSpeed((server.arg("Speed")).toInt());
-
-  if (server.hasArg("Pos"))
-    msgPos = (server.arg("Pos")).toInt();
-
-  if (server.hasArg("Abs"))
-    msgAbs = true;
-
-  constantMove(msgPos, msgSpeed, msgAbs);
-}
-
-void sendSPIFFS(String fileName)
-{
-  //String myFile = "/index.htm";
-  //https://www.luisllamas.es/como-servir-una-pagina-web-con-el-esp8266-desde-spiffs/
-
-  if (SPIFFS.exists(fileName))
-  {
-    Serial.println(F("myFile founded on   SPIFFS")); //ok
-
-    String fileType;
-    if (fileName == "/index.htm")
-    {
-      fileType = "text/html";
-    }
-    else if (fileName == "/main.css")
-    {
-      fileType = "text/css";
-    }
-    else if (fileName == "/scripts.js")
-    {
-      fileType = "application/javascript";
-    }
-    else
-    {
-      Serial.println("unknown file:");
-      Serial.print(fileName);
-      return;
-    }
-    File file = SPIFFS.open(fileName, "r");
-    size_t sent = server.streamFile(file, fileType);
-    file.close();
-
-    //server.send(200, "text/html", file);
-    //server.send("/", SPIFFS, "/index.htm");
-  }
-}
-
-void handleRootPath()
-{
-  //  String s = MAIN_page;
-  //  server.send(200, "text/html", s);
-  String myFile = "/index.htm";
-  sendSPIFFS(myFile);
-}
-
-void handleJS()
-{
-  String myFile = "/scripts.js";
-  sendSPIFFS(myFile);
-}
-
-void handleCSS()
-{
-  String myFile = "/main.css";
-  sendSPIFFS(myFile);
-}
 
 void setup()
 {
@@ -261,40 +133,84 @@ void setup()
   Serial.print("AP IP address: ");  //This is written in the PC console.
   Serial.println(myIP);
 
-  //Assigns each handler to each url
-  delay(1000);
-  server.on("/", handleRootPath);
-  server.on("/main.css", handleCSS);
-  server.on("/scripts.js", handleJS);
-  server.on("/accel", handleAccel);
-  server.on("/cons", handleConstant);
-  server.on("/multi", handleMultiple);
-
-  if (!SPIFFS.begin())
+    if (!SPIFFS.begin())
   {
     Serial.println("An Error has occurred while mounting SPIFFS");
     return;
   }
-  server.begin(); //Let's call the begin method on the server object to start the server.
-  Serial.println("HTTP server started");
+
+  //Assigns each handler to each url
+  delay(1000);
+
+  webserver.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
+    AsyncWebServerResponse *response = request->beginResponse(SPIFFS, "/index.htm", "text/html");
+    request->send(response);
+  });
+
+  webserver.on("/main.css", HTTP_GET, [](AsyncWebServerRequest *request) {
+    AsyncWebServerResponse *response = request->beginResponse(SPIFFS, "/main.css", "text/css");
+    request->send(response);
+  });
+
+  webserver.on("/scripts.js", HTTP_GET, [](AsyncWebServerRequest *request) {
+    AsyncWebServerResponse *response = request->beginResponse(SPIFFS, "/scripts.js", "application/javascript");
+    request->send(response);
+  });
+
+  webserver.on("/multi", HTTP_GET, [](AsyncWebServerRequest *request) {
+    
+    Serial.println("message received");
+    request->send(200, "text/plain", "Message Arrived");
+    int params = request->params();
+    for (int i = 0; i < params; i++)
+    {
+      Serial.printf("ARG[%s]: %s\n", request->argName(i).c_str(), request->arg(i).c_str());
+      String moveReq = request->argName(i).c_str() ;
+      String moveArg = request->arg(i).c_str();
+
+      int pos = (getValue(moveArg, ';', 0)).toInt();
+      int speed = (getValue(moveArg, ';', 1)).toInt();
+
+      if (moveReq == "cons")
+      {
+        //constantMove(pos, speed, false);
+      }
+      else if (moveReq == "accel")
+      {
+        int accel = (getValue(moveArg, ';', 2)).toInt();
+        //acceleratedMove(pos, speed, accel, false);
+      }
+    }
+
+    
+  });
+
+  webserver.begin();
 
   // Change these to suit your stepper if you want
-  stepper.setMaxSpeed(200);
-  stepper.setAcceleration(50);
+  stepper.setMaxSpeed(STEPPER_MAX_SPEED);
+  stepper.setAcceleration(STEPPER_MAX_ACCEL);
 }
+
 
 void loop()
 {
   // If we dont need to move we disable outputs (no heat)
-  if (stepper.distanceToGo() == 0)
+  /**
+  while (client.available())
   {
-    stepper.disableOutputs();
-  }
-  else
-  {
-    stepper.enableOutputs();
-  }
-  //handle client
-  server.handleClient();
-  yield();
+    client.poll();
+
+    if (stepper.distanceToGo() == 0)
+    {
+      stepper.disableOutputs();
+    }
+    else
+    {
+      stepper.enableOutputs();
+    }
+    //handle client
+    yield();
+
+  }**/
 }
