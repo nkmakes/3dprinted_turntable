@@ -1,0 +1,124 @@
+/* Chrome, Safari, Edge, Opera */
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+
+/* Firefox */
+
+input[type=number] {
+    -moz-appearance: textfield;
+}
+
+html {
+    background: linear-gradient(to bottom right, rgba(241, 115, 0, 0.8), rgba(29, 53, 157, 1));
+    min-height: 100%;
+    font-family: sans-serif;
+}
+
+#baseform {
+    background: white;
+    border: 0 none;
+    border-radius: 3px;
+    box-shadow: 0 0 15px 1px rgba(0, 0, 0, 0.4);
+    box-sizing: border-box;
+    width: 60%;
+    margin: 50px 20%;
+}
+
+.buttonDiv button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 15px;
+}
+
+.ordersList {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.buttonRow {
+    /**display: inline;**/
+    display: flex;
+    justify-content: center;
+}
+
+.center {
+    margin: auto;
+    width: 50%;
+}
+
+.moveCard {
+    margin: auto;
+    padding: 20px;
+}
+
+input {
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    margin-bottom: 10px;
+    box-sizing: border-box;
+    color: #2C3E50;
+    font-size: 25px;
+}
+
+.moveCardItem {
+    margin: 0 20px;
+    height: 60px;
+}
+
+button {
+    font-size: 30px;
+    background-color: white;
+    border: none;
+    display: inline-block;
+    text-decoration: none;
+    background: #87befd;
+    width: 60px;
+    height: 60px;
+    line-height: 30px;
+    border-radius: 50%;
+    text-align: center;
+    vertical-align: middle;
+    overflow: hidden;
+    transition: .4s;
+    align-items: center;
+}
+
+.eraseClass {
+    vertical-align: middle;
+    background-color: white;
+    align-self: center;
+}
+
+button:hover {
+    background: #668ad8;
+}
+
+.formHeader h1 {
+    padding: 20px 0px 0px 0px;
+    text-align: center;
+}
+
+@media screen and (max-width: 1600px) {
+    .moveCard {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        margin: 20px;
+        border: 0 none;
+        border-radius: 3px;
+        box-shadow: 0 0 15px 1px rgba(0, 0, 0, 0.4);
+        box-sizing: border-box;
+    }
+    .moveCardItem {
+        width: 100%;
+        margin: 5px 0;
+        padding: 0;
+    }
+}

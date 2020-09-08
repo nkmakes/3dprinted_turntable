@@ -14,27 +14,43 @@
 <body>
 
     <form id="baseform">
+        <div class="formHeader">
+            <h1>Esp8266 turntable test</h1>
+            <!--
+          <p>Set Distances in degrees (Positive or negative depending on direction)
+          <br>Speed must be always positive<br>
+          For constant speed moves use acceleration=0</p>
+          -->
+        </div>
+
         <div class="ordersList">
 
         </div>
-        <div class="submitButton">
-            <button type="submit">Submit</button>
+        <div class="buttonRow center">
+            <div class="addButton buttonDiv">
+                <button>
+                    <p>➕</p>
+                </button>
+            </div>
+            <div class="clearButton buttonDiv">
+                <button>
+                    <p>♻</p>
+                </button>
+            </div>
+            <div class="submitButton buttonDiv">
+                <button type="submit">
+                    <p>✔</p>
+                </button>
+            </div>
         </div>
     </form>
 
 
-    <div class="addButton">
-        <button>Add movement</button>
     </div>
-    <div class="clearButton">
-        <button>Clear</button>
-    </div>
-
-
-    <div id="debug">
-    </div>
+    <!--div id="debug">
+</1div-->
 
 </body>
-<script src="scripts.js"></script> 
+<script src="scripts.js"></script>
 
 </html>
