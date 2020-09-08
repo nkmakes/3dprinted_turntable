@@ -10,6 +10,10 @@ function createOne() {
     divc.setAttribute("id", "MoveNum" + position);
     divc.classList.add("moveCard");
 
+    const numberIndex = document.createElement("h2");
+    numberIndex.innerHTML = position + ".";
+    numberIndex.classList.add("moveCardItem");
+
 
     const distanceSel = document.createElement("INPUT");
     distanceSel.setAttribute("type", "number");
@@ -66,7 +70,7 @@ function createOne() {
     eraseButton.onclick = function() { divc.parentNode.removeChild(divc); };
 
 
-
+    divc.appendChild(numberIndex);
     divc.appendChild(distanceSel);
     divc.appendChild(speedSel);
     //divc.appendChild(acceleratedLabel);
@@ -79,14 +83,10 @@ function createOne() {
 
 
 let position = 1;
-addBtn.onclick = function() {
-    createOne(position);
-    position++;
-};
-clearBtn.onclick = function() {
-    orderList.innerHTML = ' ';
-    position = 1;
-};
+addBtn.onclick = function() { createOne(position);
+    position++; };
+clearBtn.onclick = function() { orderList.innerHTML = ' ';
+    position = 1; };
 //submitBtn.onlick = function() {orderList.innerHTML= ' '; position=1;};
 document.getElementById("baseform").onsubmit = function(event) {
     //var items = {};
@@ -100,9 +100,9 @@ document.getElementById("baseform").onsubmit = function(event) {
         //document.getElementById("debug").innerHTML = document.getElementById("debug").innerHTML + form[i];
         //form[i].style.backgroundColor = "red";
         var j;
-        var distanceInput = inputs[0].value;
-        var speedInput = inputs[1].value;
-        var accelerationInput = inputs[2].value;
+        var distanceInput = inputs[1].value;
+        var speedInput = inputs[2].value;
+        var accelerationInput = inputs[3].value;
         var mtypeInput = false;
         if (accelerationInput != 0) { mtypeInput = true };
 
@@ -115,7 +115,7 @@ document.getElementById("baseform").onsubmit = function(event) {
         }
     };
     Url = Url.substring(0, Url.length - 1);
-    document.getElementById("debug").innerHTML = Url;
+    /**document.getElementById("debug").innerHTML = Url;**/
     var xhttp = new XMLHttpRequest();
     xhttp.open("GET", Url, true);
     xhttp.send(null);
