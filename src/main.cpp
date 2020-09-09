@@ -38,9 +38,6 @@ String moveList;
  * https://github.com/me-no-dev/ESPAsyncWebServer#principles-of-operation
  */
 
-
-
-
 String getValue(String data, char separator, int index)
 {
   int found = 0;
@@ -65,12 +62,11 @@ void constantMove()
 {
   stepper.setMaxSpeed(speed);
 
-    stepper.move((pos * oneTurn) / 360);
-    if (pos < 0)
-    {
-      speed = -speed;
-    }
- 
+  stepper.move((pos * oneTurn) / 360);
+  if (pos < 0)
+  {
+    speed = -speed;
+  }
 }
 
 // Handles the accelerated moves of the platform
@@ -81,42 +77,42 @@ void acceleratedMove()
   //if absoulte = true, moves to a absolut position
 
   stepper.move((pos * oneTurn) / 360);
-
 }
 
-boolean getNextMove() {
-  if ((moveList == "") | (moveList == ":")) return false;
+boolean getNextMove()
+{
+  if ((moveList == "") | (moveList == ":"))
+    return false;
 
   int endCommandIndex = moveList.indexOf(':');
-  String fullMove=moveList.substring(0, endCommandIndex);
-  String mType=getValue(fullMove, '|', 0);
-  String specs=getValue(fullMove, '|', 1);
+  String fullMove = moveList.substring(0, endCommandIndex);
+  String mType = getValue(fullMove, '|', 0);
+  String specs = getValue(fullMove, '|', 1);
 
   //Serial.println(fullMove);
-  pos = getValue(specs,';',0).toInt();
-  speed = getValue(specs,';',1).toInt();  
-  if (mType=="0") {
+  pos = getValue(specs, ';', 0).toInt();
+  speed = getValue(specs, ';', 1).toInt();
+  if (mType == "0")
+  {
     movementType = 0;
   }
-  if (mType=="1") {
-    accel = getValue(specs,';',2).toInt();
+  if (mType == "1")
+  {
+    accel = getValue(specs, ';', 2).toInt();
     movementType = 1;
   }
   Serial.print(moveList + "-----  ");
-  moveList = moveList.substring(endCommandIndex+1);
+  moveList = moveList.substring(endCommandIndex + 1);
   Serial.print(moveList);
 
-  if (moveList == ":") 
+  if (moveList == ":")
   {
-    moveList="";
-  } else {
-    
+    moveList = "";
   }
-  
+
   //Serial.println(moveList);
   return true;
 }
-
 
 void setup()
 {
@@ -130,7 +126,7 @@ void setup()
   Serial.print("AP IP address: ");  //This is written in the PC console.
   Serial.println(myIP);
 
-    if (!SPIFFS.begin())
+  if (!SPIFFS.begin())
   {
     Serial.println("An Error has occurred while mounting SPIFFS");
     return;
@@ -157,14 +153,13 @@ void setup()
   });
 
   webserver.on("/multi", HTTP_GET, [](AsyncWebServerRequest *request) {
-    
     Serial.println("message received");
     request->send(200, "text/plain", "Message Arrived");
     int params = request->params();
     for (int i = 0; i < params; i++)
     {
       Serial.printf("ARG[%s]: %s\n", request->argName(i).c_str(), request->arg(i).c_str());
-      String moveReq = request->argName(i).c_str() ;
+      String moveReq = request->argName(i).c_str();
       String moveArg = request->arg(i).c_str();
 
       //pos = (getValue(moveArg, ';', 0)).toInt();
@@ -182,10 +177,37 @@ void setup()
         moveArg = "1|" + moveArg;
       }
       moveList = moveList + moveArg + ":";
-      
+    }
+  });
+
+  webserver.on("/stop", HTTP_GET, [](AsyncWebServerRequest *request) {
+    moveList = "";
+    stepper.move(0);
+    movementType = 0;
+    stepper.stop();
+    request->send(200, "text/plain", "Motor stopped");
+  });
+
+  webserver.on("/infinite", HTTP_GET, [](AsyncWebServerRequest *request) {
+    int i = 0;
+    request->send(200, "text/plain", "Motor started");
+    String moveReq = request->argName(i).c_str();
+    String moveArg = request->arg(i).c_str();
+    Serial.println(moveArg);
+    speed = moveArg.toInt();
+    if (speed > 0)
+    {
+      pos = 20;
+    }
+    else
+    {
+      pos = -20;
+      speed = -speed;
     }
 
-    
+    movementType = 2;
+    constantMove();
+    request->send(200, "text/plain", "Motor stopped");
   });
 
   webserver.begin();
@@ -195,32 +217,52 @@ void setup()
   stepper.setAcceleration(STEPPER_MAX_ACCEL);
 }
 
-
 void loop()
 {
-  if (getNextMove()!=false) {
+  if (getNextMove() != false)
+  {
     stepper.enableOutputs();
-    if (movementType==0) {
+    if (movementType == 0)
+    {
       constantMove();
-      
-    } else if (movementType==1) {
+    }
+    else if (movementType == 1)
+    {
       acceleratedMove();
     }
-  
+
     while (stepper.distanceToGo() != 0)
     {
       // run a step and calc when next one
-      if (movementType==0) {
-            stepper.run();
-            stepper.setSpeed(speed);
-      } else if (movementType==1) {
-          stepper.run();
+      if (movementType == 0)
+      {
+        stepper.run();
+        stepper.setSpeed(speed);
       }
+      else if (movementType == 1)
+      {
+        stepper.run();
+      }
+
       // reset esp8266 watchdog
       yield();
     }
-    //movementType=0;
-  } else {
+  }
+  else if (movementType == 2 && stepper.distanceToGo() != 0)
+  {
+    while (stepper.distanceToGo() != 0)
+    {
+      stepper.run();
+      stepper.setSpeed(speed);
+      yield();
+      if (stepper.distanceToGo() < 100)
+      {
+        stepper.move(stepper.distanceToGo() * 2);
+      }
+    }
+  }
+  else
+  {
     stepper.disableOutputs();
   }
 }
