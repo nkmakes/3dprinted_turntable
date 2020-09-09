@@ -44,6 +44,7 @@ html {
     box-sizing: border-box;
     width: 60%;
     margin: 50px 20%;
+    z-index: -1;
 }
 
 .buttonDiv button {
@@ -57,6 +58,7 @@ html {
     display: flex;
     flex-direction: column;
     justify-content: center;
+    z-index: 1;
 }
 
 .buttonRow {
@@ -73,6 +75,7 @@ html {
 .moveCard {
     margin: auto;
     padding: 10px 20px;
+    z-index: 2;
 }
 
 input {
@@ -96,6 +99,7 @@ input:invalid {
 .moveCardItem {
     margin: 0 10px;
     height: 40px;
+    z-index: 4;
 }
 
 button {
@@ -177,6 +181,15 @@ button:hover {
         color: White;
     }
     h2 {
-        display: none;
+        font-size: 60px;
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        color: lightblue;
+    }
+    .moveCardHeader {
+        position: absolute;
+        z-index: 3;
+        left: 30px;
     }
 }

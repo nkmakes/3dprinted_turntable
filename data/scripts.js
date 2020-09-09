@@ -11,7 +11,8 @@ function createOne() {
     divc.classList.add("moveCard");
 
     const numberIndex = document.createElement("h2");
-    numberIndex.innerHTML = position + ".";
+    numberIndex.innerHTML = position;
+    numberIndex.classList.add("moveCardHeader");
     numberIndex.classList.add("moveCardItem");
 
 
@@ -83,14 +84,10 @@ function createOne() {
 
 
 let position = 1;
-addBtn.onclick = function() {
-    createOne(position);
-    position++;
-};
-clearBtn.onclick = function() {
-    orderList.innerHTML = ' ';
-    position = 1;
-};
+addBtn.onclick = function() { createOne(position);
+    position++; };
+clearBtn.onclick = function() { orderList.innerHTML = ' ';
+    position = 1; };
 //submitBtn.onlick = function() {orderList.innerHTML= ' '; position=1;};
 document.getElementById("baseform").onsubmit = function(event) {
     //var items = {};
