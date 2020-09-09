@@ -83,15 +83,19 @@ function createOne() {
 
 
 let position = 1;
-addBtn.onclick = function() { createOne(position);
-    position++; };
-clearBtn.onclick = function() { orderList.innerHTML = ' ';
-    position = 1; };
+addBtn.onclick = function() {
+    createOne(position);
+    position++;
+};
+clearBtn.onclick = function() {
+    orderList.innerHTML = ' ';
+    position = 1;
+};
 //submitBtn.onlick = function() {orderList.innerHTML= ' '; position=1;};
 document.getElementById("baseform").onsubmit = function(event) {
     //var items = {};
     event.preventDefault()
-    document.getElementById("debug").innerHTML = " ";
+        //document.getElementById("debug").innerHTML = " ";
     var form = document.getElementsByClassName("moveCard");
     var i = 0;
     let Url = "http://192.168.4.1/multi?";
@@ -107,7 +111,7 @@ document.getElementById("baseform").onsubmit = function(event) {
         if (accelerationInput != 0) { mtypeInput = true };
 
 
-        document.getElementById("debug").innerHTML = document.getElementById("debug").innerHTML + "<br>" + distanceInput + "," + speedInput + "," + mtypeInput + "," + accelerationInput;
+        //document.getElementById("debug").innerHTML = document.getElementById("debug").innerHTML + "<br>" + distanceInput + "," + speedInput + "," + mtypeInput + "," + accelerationInput;
         if (mtypeInput == true) {
             Url = Url + "accel=" + distanceInput + ";" + speedInput + ";" + accelerationInput + "&";
         } else {

@@ -162,6 +162,10 @@ button:hover {
         background: none;
         box-shadow: none;
     }
+    .moveCardItem {
+        width: 90%;
+        margin: 5px 5%;
+    }
     .moveCard {
         background: white;
         border: 0 none;
@@ -171,5 +175,8 @@ button:hover {
     }
     h1 {
         color: White;
+    }
+    h2 {
+        display: none;
     }
 }
