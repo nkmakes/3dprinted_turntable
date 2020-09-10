@@ -42,7 +42,7 @@ You set your desired moves in two ways:
 
 ### Schematics
 
-![turntable esp8266 electronics]({{site.baseurl}}/images/turntable_circuit.JPG)
+![turntable esp8266 electronics](https://nkmakes.github.io/images/turntable_circuit.JPG)
 
 <br>
 
