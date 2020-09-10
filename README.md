@@ -1,4 +1,4 @@
-# esp8266 3dprinted turntable pure JS UI
+# esp8266 3dprinted turntable UI and API
 I wanted a turntable to show off some prints, and after looking all-around the web i falled into amazings Bribro12's [Fully 3d-printable turntable](https://www.thingiverse.com/thing:3723618) and [Arduino controlled photogrammetry 3D-scanner](https://www.thingiverse.com/thing:3958326) designs. 
 
 I liked a lot the gear/bearing system but i wanted to change a bit the aesthetics and electronic components, so i decided to modify the "enclosure" or "base" to fit my needs.
