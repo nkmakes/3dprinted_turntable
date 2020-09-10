@@ -128,7 +128,6 @@ Currently supports the following http GET requests:
 - All the open source developers that creating the following amazing libraries and sketchs and/or collaborated in any way, specially in the following projects:
     - [ESPAsyncWebServer](https://github.com/me-no-dev/ESPAsyncWebServer)
     - [AccelStepper](https://www.airspayce.com/mikem/arduino/AccelStepper/)
-    - 
 - All the creators of the following tutorials, which shared the knowledge to make the software possible to be made, or at least in less time.
     - [Randomnerd ESPAsyncWebServer how-to](https://randomnerdtutorials.com/esp32-async-web-server-espasyncwebserver-library/)
     - [Randomnerd ESPAsyncWebServer from SPIFFS](https://randomnerdtutorials.com/esp32-web-server-spiffs-spi-flash-file-system/)
