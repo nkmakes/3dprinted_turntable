@@ -36,7 +36,7 @@ html {
     font-family: sans-serif;
 }
 
-#baseform {
+.controlTab {
     background: white;
     border: 0 none;
     border-radius: 3px;
@@ -135,13 +135,18 @@ button:hover {
     background: #668ad8;
 }
 
-.formHeader h1 {
+h1 {
     padding: 20px 0px 0px 0px;
     text-align: center;
 }
 
+#constantSpeedInput {
+    width: 40%;
+    margin: 20px 30%;
+}
+
 @media screen and (max-width: 1600px) {
-    #baseform {
+    .controlTab {
         width: 80%;
         margin: 30px 10%;
     }
@@ -160,7 +165,7 @@ button:hover {
 }
 
 @media screen and (max-width: 900px) {
-    #baseform {
+    .controlTab {
         width: 90%;
         margin: 20px 5%;
         background: none;
@@ -191,5 +196,12 @@ button:hover {
         position: absolute;
         z-index: 3;
         left: 30px;
+    }
+    #constantForm {
+        background: white;
+        border: 0 none;
+        border-radius: 3px;
+        box-shadow: 0 0 15px 1px rgba(0, 0, 0, 0.4);
+        box-sizing: border-box;
     }
 }

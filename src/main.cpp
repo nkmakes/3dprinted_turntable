@@ -114,6 +114,23 @@ boolean getNextMove()
   return true;
 }
 
+
+void onWsEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len){
+ 
+  if(type == WS_EVT_CONNECT){
+ 
+    Serial.println("Websocket client connection received");
+    client->text("Hello from ESP32 Server");
+ 
+  } else if(type == WS_EVT_DISCONNECT){
+    Serial.println("Client disconnected");
+ 
+  }
+
+  
+
+}
+
 void setup()
 {
   moveList = "";
@@ -181,14 +198,16 @@ void setup()
   });
 
   webserver.on("/stop", HTTP_GET, [](AsyncWebServerRequest *request) {
+    Serial.println("message received");
+    request->send(200, "text/plain", "Motor stopped");
     moveList = "";
     stepper.move(0);
     movementType = 0;
     stepper.stop();
-    request->send(200, "text/plain", "Motor stopped");
   });
 
   webserver.on("/infinite", HTTP_GET, [](AsyncWebServerRequest *request) {
+    Serial.println("message received");
     int i = 0;
     request->send(200, "text/plain", "Motor started");
     String moveReq = request->argName(i).c_str();
@@ -209,6 +228,9 @@ void setup()
     constantMove();
     request->send(200, "text/plain", "Motor stopped");
   });
+
+  ws.onEvent(onWsEvent);
+  webserver.addHandler(&ws);
 
   webserver.begin();
 
