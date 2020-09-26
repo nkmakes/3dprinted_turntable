@@ -13,9 +13,9 @@
 
 <body>
 
-    <form id="baseform">
+    <form id="baseform" class="controlTab">
         <div class="formHeader">
-            <h1>Esp8266 turntable test</h1>
+            <h1>Esp8266 turntable move list</h1>
             <!--
           <p>Set Distances in degrees (Positive or negative depending on direction)
           <br>Speed must be always positive<br>
@@ -28,22 +28,44 @@
         </div>
         <div class="buttonRow center">
             <div class="addButton buttonDiv">
-                <button>
-                    <p>➕</p>
-                </button>
+                <button><p>➕</p></button>
             </div>
             <div class="clearButton buttonDiv">
-                <button>
-                    <p>♻</p>
-                </button>
+                <button><p>♻</p></button>
             </div>
             <div class="submitButton buttonDiv">
-                <button type="submit">
-                    <p>✔</p>
-                </button>
+                <button type="submit"><p>✔</p></button>
             </div>
         </div>
     </form>
+
+    <div class="controlTab">
+
+        <h1>
+            Constant Move control
+        </h1>
+        <form id="constantForm">
+            <input placeholder="Speed" id="constantSpeedInput" type="number">
+            <div class="buttonRow center">
+                <div class="leftButton buttonDiv">
+                    <button><p>&#9664;</p></button>
+                </div>
+                <div class="rightButton buttonDiv">
+                    <button><p>&#9658;</p></button>
+                </div>
+                <div class="stopButton buttonDiv">
+                    <button href="http://192.168.4.1/stop"><p>&#128721;</p></button>
+                </div>
+            </div>
+
+        </form>
+
+    </div>
+
+
+
+    <!--div id="debug">
+</1div-->
     <!--div id="debug">
 </1div-->
 

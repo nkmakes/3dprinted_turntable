@@ -10,8 +10,7 @@ AsyncEventSource events("/events"); // event source (Server-Sent events)
 
 
 // Stepper Config
-AccelStepper stepper(AccelStepper::FULL4WIRE, D5, D6, D7, D8); // Stepper Wiring
+AccelStepper stepper(4, D5, D7, D6, D8); // Stepper Wiring
 const int oneTurn = 14336;                                     // One turn of the platform in steps
-const int STEPPER_MAX_SPEED = 200;
-const int STEPPER_MAX_ACCEL = 50;
-// https://stackoverflow.com/questions/9072320/split-string-into-string-array
+const int STEPPER_MAX_SPEED = 1000;
+const int STEPPER_MAX_ACCEL = 1000;

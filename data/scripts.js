@@ -1,9 +1,12 @@
-const orderList = document.querySelector('.ordersList');
-const addBtn = document.querySelector('.addButton button');
-const clearBtn = document.querySelector('.clearButton button');
-const submitBtn = document.querySelector('.submitButton button');
+const orderList = document.querySelector(".ordersList");
+const addBtn = document.querySelector(".addButton button");
+const clearBtn = document.querySelector(".clearButton button");
+const submitBtn = document.querySelector(".submitButton button");
+const leftBtn = document.querySelector(".leftButton button");
+const rightBtn = document.querySelector(".rightButton button");
+const stopBtn = document.querySelector(".stopButton button");
 
-orderList.innerHTML = ' ';
+orderList.innerHTML = " ";
 
 function createOne() {
     const divc = document.createElement("div");
@@ -15,7 +18,6 @@ function createOne() {
     numberIndex.classList.add("moveCardHeader");
     numberIndex.classList.add("moveCardItem");
 
-
     const distanceSel = document.createElement("INPUT");
     distanceSel.setAttribute("type", "number");
     distanceSel.setAttribute("name", "distance");
@@ -23,7 +25,6 @@ function createOne() {
     distanceSel.classList.add("moveCardItem");
     distanceSel.required = true;
     //distanceSel.defaultValue = 0;
-
 
     const speedSel = document.createElement("INPUT");
     speedSel.setAttribute("type", "number");
@@ -45,14 +46,16 @@ function createOne() {
     acceleratedSel.classList.add("moveCardItem");
     acceleratedSel.classList.add("accelMove");
     acceleratedSel.setAttribute("value", position);
-    acceleratedSel.onclick = (function() {
-        document.getElementById("debug").innerHTML = "<p>" + acceleratedSel.value + "</p>";
+    acceleratedSel.onclick = function() {
+        document.getElementById("debug").innerHTML =
+            "<p>" + acceleratedSel.value + "</p>";
         togglebox1 = document.getElementById("my-boxA" + acceleratedSel.value);
         togglebox2 = document.getElementById("my-boxB" + acceleratedSel.value);
-        togglebox1.style.display = (togglebox1.style.display != 'inline') ? 'inline' : 'none';
-        togglebox2.style.display = (togglebox2.style.display != 'inline') ? 'inline' : 'none';
-    });
-
+        togglebox1.style.display =
+            togglebox1.style.display != "inline" ? "inline" : "none";
+        togglebox2.style.display =
+            togglebox2.style.display != "inline" ? "inline" : "none";
+    };
 
     const accelerationSel = document.createElement("INPUT");
     accelerationSel.setAttribute("type", "number");
@@ -68,8 +71,9 @@ function createOne() {
     const eraseButton = document.createElement("button");
     eraseButton.innerHTML = "✖";
     eraseButton.classList.add("eraseClass");
-    eraseButton.onclick = function() { divc.parentNode.removeChild(divc); };
-
+    eraseButton.onclick = function() {
+        divc.parentNode.removeChild(divc);
+    };
 
     divc.appendChild(numberIndex);
     divc.appendChild(distanceSel);
@@ -82,17 +86,40 @@ function createOne() {
     orderList.appendChild(divc);
 }
 
-
 let position = 1;
-addBtn.onclick = function() { createOne(position);
-    position++; };
-clearBtn.onclick = function() { orderList.innerHTML = ' ';
-    position = 1; };
+
+addBtn.onclick = function() {
+    createOne(position);
+    position++;
+};
+clearBtn.onclick = function() {
+    orderList.innerHTML = " ";
+    position = 1;
+};
 //submitBtn.onlick = function() {orderList.innerHTML= ' '; position=1;};
+
+leftBtn.onclick = function() {
+    var xhttp = new XMLHttpRequest();
+    xhttp.open("GET", "http://192.168.4.1/infinite?speed=" + document.getElementById("constantSpeedInput").value, true);
+    xhttp.send(null);
+};
+
+rightBtn.onclick = function() {
+    var xhttp = new XMLHttpRequest();
+    xhttp.open("GET", "http://192.168.4.1/infinite?speed=" + document.getElementById("constantSpeedInput").value, true);
+    xhttp.send(null);
+};
+
+//stopBtn.onclick = function() {
+//    var xhttp = new XMLHttpRequest();
+//    xhttp.open("GET", "http://192.168.4.1/stop", true);
+//    xhttp.send(null);
+//};
+
 document.getElementById("baseform").onsubmit = function(event) {
     //var items = {};
-    event.preventDefault()
-        //document.getElementById("debug").innerHTML = " ";
+    event.preventDefault();
+    //document.getElementById("debug").innerHTML = " ";
     var form = document.getElementsByClassName("moveCard");
     var i = 0;
     let Url = "http://192.168.4.1/multi?";
@@ -105,19 +132,28 @@ document.getElementById("baseform").onsubmit = function(event) {
         var speedInput = inputs[2].value;
         var accelerationInput = inputs[3].value;
         var mtypeInput = false;
-        if (accelerationInput != 0) { mtypeInput = true };
-
+        if (accelerationInput != 0) {
+            mtypeInput = true;
+        }
 
         //document.getElementById("debug").innerHTML = document.getElementById("debug").innerHTML + "<br>" + distanceInput + "," + speedInput + "," + mtypeInput + "," + accelerationInput;
         if (mtypeInput == true) {
-            Url = Url + "accel=" + distanceInput + ";" + speedInput + ";" + accelerationInput + "&";
+            Url =
+                Url +
+                "accel=" +
+                distanceInput +
+                ";" +
+                speedInput +
+                ";" +
+                accelerationInput +
+                "&";
         } else {
             Url = Url + "cons=" + distanceInput + ";" + speedInput + "&";
         }
-    };
+    }
     Url = Url.substring(0, Url.length - 1);
     /**document.getElementById("debug").innerHTML = Url;**/
     var xhttp = new XMLHttpRequest();
     xhttp.open("GET", Url, true);
     xhttp.send(null);
-}
+};
